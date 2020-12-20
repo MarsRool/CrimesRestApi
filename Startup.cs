@@ -21,6 +21,7 @@ namespace CrimesRestApi
         {
             Configuration = configuration;
             Environment = environment;
+            Environment.EnvironmentName = "Production";
         }
 
         public IConfiguration Configuration { get; }
