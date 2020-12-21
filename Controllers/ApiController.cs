@@ -41,12 +41,12 @@ namespace CrimesRestApi.Controllers
 
         [HttpGet("crimes")]
         public string GetCrimes()
-        {
+        {            
             return JsonConvert.SerializeObject(Enumerable.Range(1, 5).Select(index => new CrimeReadDto
             {
                 UUID = "123e4567-e89b-42d3-a456-55664244000" + (char)('0' + index),
                 Title = "ljlsdkfjlskdjf" + index,
-                Date = DateTime.Now.AddDays(index).ToFileTimeUtc(),
+                Date = new DateTimeOffset(DateTime.Now.AddDays(index)).ToUnixTimeMilliseconds(),
                 Solved = index % 2 == 1,
                 RequirePolice = index % 2 + 1 == 1,
             })
