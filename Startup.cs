@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CrimesRestApi.Data;
+using CrimesRestApi.Dtos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -38,6 +39,9 @@ namespace CrimesRestApi
                 {
                     options.SetPostgresVersion(new Version("9.5"));
                 }));
+
+            services.AddScoped<ICrimesRepo, CrimesRepo>();
+            services.AddSingleton<ICustomMapper, CustomMapper>();
         }
 
         public void Configure(IApplicationBuilder app)
