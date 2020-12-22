@@ -27,11 +27,12 @@ namespace CrimesRestApi.Data
 
         public async Task<bool> RegisterUser(User user)
         {
-            if (user == null)
+            if (user == null || _context.Users.First(u => u.Email == user.Email) != null)
             {
                 return await ICrimesRepo.falseTask;
             }
-            return await Task.FromResult( _context.AddAsync(user).Result.State == EntityState.Added);
+            await _context.AddAsync(user);
+            return await ICrimesRepo.trueTask;
         }
 
         public async Task<bool> SetCrimes(User user, List<Crime> crimes)
@@ -109,7 +110,8 @@ namespace CrimesRestApi.Data
             {
                 return await ICrimesRepo.falseTask;
             }
-            return await Task.FromResult(_context.AddAsync(crime).Result.State == EntityState.Added);
+            await _context.AddAsync(crime);
+            return await ICrimesRepo.trueTask;
         }
         private async Task<bool> UpdateCrime(Crime crime)
         {
@@ -117,7 +119,8 @@ namespace CrimesRestApi.Data
             {
                 return await ICrimesRepo.falseTask;
             }
-            return await Task.FromResult(_context.Update(crime).State == EntityState.Modified);
+            _context.Update(crime);
+            return await ICrimesRepo.trueTask;
         }
         private async Task<bool> DeleteCrime(Crime crime)
         {
@@ -125,7 +128,8 @@ namespace CrimesRestApi.Data
             {
                 return await ICrimesRepo.falseTask;
             }
-            return await Task.FromResult(_context.Remove(crime).State == EntityState.Deleted);
+            _context.Remove(crime);
+            return await ICrimesRepo.trueTask;
         }
     }
 }
