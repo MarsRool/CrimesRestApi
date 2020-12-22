@@ -20,5 +20,18 @@ namespace CrimesRestApi.Dtos
                 RequirePolice = crime.RequirePolice
             };
         }
+
+        public Crime Map(CrimeReadDto crimeReadDto)
+        {
+            return new Crime
+            {
+                Id = crimeReadDto.Id,
+                UUID = crimeReadDto.UUID,
+                Title = crimeReadDto.Title,
+                Date = DateTimeOffset.FromUnixTimeMilliseconds(crimeReadDto.Date).DateTime.ToLocalTime(),
+                Solved = crimeReadDto.Solved,
+                RequirePolice = crimeReadDto.RequirePolice
+            };
+        }
     }
 }

@@ -15,11 +15,6 @@ namespace CrimesRestApi.Controllers
     [Route("api")]
     public class ApiController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
         private readonly ILogger<ApiController> _logger;
         private readonly ICustomMapper _mapper;
         private readonly ICrimesRepo _repo;
@@ -31,8 +26,35 @@ namespace CrimesRestApi.Controllers
             _repo = repo;
         }
 
+        [HttpGet("register")]
+        public async Task<IActionResult> RegisterUser(string email, string password)
+        {
+            return await RegisterUserPost(email, password);
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterUserPost(string email, string password)
+        {
+            bool result = await _repo.RegisterUser(new User
+            {
+                Email = email,
+                Password = password
+            });
+            if (result)
+            {
+                await _repo.SaveChanges();
+            }
+            return RedirectToAction(nameof(GetResult), new { result });
+        }
+
+        [HttpGet("crime_result")]
+        public async Task<IActionResult> GetResult(bool result)
+        {
+            return await Task.FromResult(Ok(result ? "{result:true}" : "{result:false}"));
+        }
+
         [HttpGet("crimes")]
-        public async Task<string> GetCrimes(string email, string password)
+        public async Task<IActionResult> GetCrimes(string email, string password)
         {
             try
             {
@@ -42,19 +64,58 @@ namespace CrimesRestApi.Controllers
                 List<CrimeReadDto> crimeDtos = new List<CrimeReadDto>();                
                 foreach (Crime crime in user.Crimes)
                     crimeDtos.Add(_mapper.Map(crime));
-                return await Task.FromResult(JsonConvert.SerializeObject(crimeDtos.ToArray(), Formatting.Indented));
-            } catch (Exception) {
-                return await Task.FromResult("[]");
+                return await Task.FromResult(Ok(JsonConvert.SerializeObject(crimeDtos.ToArray(), Formatting.Indented)));
+                /*return await Task.FromResult(Ok(JsonConvert.SerializeObject(Enumerable.Range(1, 5).Select(index => new CrimeReadDto
+                {
+                    UUID = "123e4567-e89b-42d3-a456-55664244000" + (char)('0' + index),
+                    Title = "ljlsdkfjlskdjf" + index,
+                    Date = new DateTimeOffset(DateTime.Now.AddDays(index)).ToUnixTimeMilliseconds(),
+                    Solved = index % 2 == 1,
+                    RequirePolice = index % 2 + 1 == 1,
+                })
+                .ToArray(), Formatting.Indented)));*/
             }
-            /*return JsonConvert.SerializeObject(Enumerable.Range(1, 5).Select(index => new CrimeReadDto
+            catch (Exception)
             {
-                UUID = "123e4567-e89b-42d3-a456-55664244000" + (char)('0' + index),
-                Title = "ljlsdkfjlskdjf" + index,
-                Date = new DateTimeOffset(DateTime.Now.AddDays(index)).ToUnixTimeMilliseconds(),
-                Solved = index % 2 == 1,
-                RequirePolice = index % 2 + 1 == 1,
-            })
-            .ToArray(), Formatting.Indented);*/
+                return await Task.FromResult(Ok("[]"));
+            }
+        }
+
+        [HttpGet("set_crimes")]
+        public async Task<IActionResult> SetCrimes(string email, string password, string crimes)
+        {
+            return await SetCrimesPost(email, password, crimes);
+        }
+
+        [HttpPost("set_crimes")]
+        public async Task<IActionResult> SetCrimesPost(string email, string password, string crimes)
+        {
+            User user = await _repo.GetUserCrimes(email, password);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(GetResult), new { result = false });
+            }
+            try
+            {
+                List<CrimeReadDto> crimeDtos = JsonConvert.DeserializeObject<List<CrimeReadDto>>(crimes);
+                List<Crime> crimesList = new List<Crime>();
+                foreach(CrimeReadDto crimeReadDto in crimeDtos)
+                {
+                    Crime crime = _mapper.Map(crimeReadDto);
+                    crime.User = user;
+                    crimesList.Add(crime);
+                }
+                bool result = await _repo.SetCrimes(user, crimesList);
+                if (result)
+                {
+                    await _repo.SaveChanges();
+                }
+                return RedirectToAction(nameof(GetResult), new { result });
+            }
+            catch (Exception)
+            {
+                return RedirectToAction(nameof(GetResult), new { result = false });
+            }
         }
     }
 }

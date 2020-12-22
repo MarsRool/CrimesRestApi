@@ -31,8 +31,7 @@ namespace CrimesRestApi.Data
             {
                 return await ICrimesRepo.falseTask;
             }
-            await _context.AddAsync(user);
-            return await ICrimesRepo.trueTask;
+            return await Task.FromResult( _context.AddAsync(user).Result.State == EntityState.Added);
         }
 
         public async Task<bool> SetCrimes(User user, List<Crime> crimes)
@@ -45,7 +44,7 @@ namespace CrimesRestApi.Data
             {
                 _context.Entry(user).Collection(c => c.Crimes).Load();
             }
-            return await ResaveCrimes(user, crimes);
+            return await SaveCrimes(user, crimes);
         }
 
         public async Task<bool> SaveChanges()
@@ -53,9 +52,26 @@ namespace CrimesRestApi.Data
             return await _context.SaveChangesAsync() >= 0;
         }
 
-        private async Task<bool> ResaveCrimes(User user, List<Crime> crimes)
+        private async Task<bool> SaveCrimes(User user, List<Crime> crimes)
         {
+            List<Crime> crimesCreate = new List<Crime>(),
+                crimesUpdate = new List<Crime>(),
+                crimesDelete = new List<Crime>();
+
             foreach (var crime in user.Crimes)
+            {
+                if (crimes.Contains(crime, Crime.comparer))
+                    crimesUpdate.Add(crime);
+                else
+                    crimesDelete.Add(crime);
+            }
+            foreach (var crime in crimes)
+            {
+                if (!user.Crimes.Contains(crime, Crime.comparer))
+                    crimesCreate.Add(crime);
+            }
+
+            foreach (var crime in crimesDelete)
             {
                 try
                 {
@@ -64,12 +80,23 @@ namespace CrimesRestApi.Data
 
                 }
             }
-            foreach (var crime in crimes)
+            foreach (var crime in crimesCreate)
             {
                 try
                 {
                     await CreateCrime(crime);
                 } catch (Exception) {
+
+                }
+            }
+            foreach (var crime in crimesUpdate)
+            {
+                try
+                {
+                    await UpdateCrime(crime);
+                }
+                catch (Exception)
+                {
 
                 }
             }
@@ -82,8 +109,15 @@ namespace CrimesRestApi.Data
             {
                 return await ICrimesRepo.falseTask;
             }
-            await _context.AddAsync(crime);
-            return await ICrimesRepo.trueTask;
+            return await Task.FromResult(_context.AddAsync(crime).Result.State == EntityState.Added);
+        }
+        private async Task<bool> UpdateCrime(Crime crime)
+        {
+            if (crime == null)
+            {
+                return await ICrimesRepo.falseTask;
+            }
+            return await Task.FromResult(_context.Update(crime).State == EntityState.Modified);
         }
         private async Task<bool> DeleteCrime(Crime crime)
         {
@@ -91,8 +125,7 @@ namespace CrimesRestApi.Data
             {
                 return await ICrimesRepo.falseTask;
             }
-            _context.Remove(crime);
-            return await ICrimesRepo.trueTask;
+            return await Task.FromResult(_context.Remove(crime).State == EntityState.Deleted);
         }
     }
 }

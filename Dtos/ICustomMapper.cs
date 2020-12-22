@@ -9,5 +9,6 @@ namespace CrimesRestApi.Dtos
     public interface ICustomMapper
     {
         CrimeReadDto Map(Crime crime);
+        Crime Map(CrimeReadDto crimeReadDto);
     }
 }
