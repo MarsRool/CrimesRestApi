@@ -55,58 +55,33 @@ namespace CrimesRestApi.Data
 
         private async Task<bool> SaveCrimes(User user, List<Crime> crimes)
         {
-            List<Crime> crimesCreate = new List<Crime>(),
-                crimesUpdate = new List<Crime>(),
-                crimesDelete = new List<Crime>();
-
+            bool result = true;
             foreach (var crime in user.Crimes)
-            {
-                if (!crimes.Contains(crime, Crime.comparer))
-                    crimesDelete.Add(crime);
-            }
-            foreach (var crime in crimes)
-            {
-                crime.User = user;
-                Crime existingCrime = user.Crimes.First(c => c.UUID == crime.UUID);
-                if (existingCrime != null)
-                {
-                    crime.Id = existingCrime.Id;
-                    crimesUpdate.Add(crime);
-                }
-                else
-                    crimesCreate.Add(crime);
-            }
-
-            foreach (var crime in crimesDelete)
             {
                 try
                 {
                     await DeleteCrime(crime);
-                } catch (Exception) {
-
-                }
-            }
-            foreach (var crime in crimesCreate)
-            {
-                try
-                {
-                    await CreateCrime(crime);
-                } catch (Exception) {
-
-                }
-            }
-            foreach (var crime in crimesUpdate)
-            {
-                try
-                {
-                    await UpdateCrime(crime);
                 }
                 catch (Exception)
                 {
-
+                    result = false;
                 }
             }
-            return await ICrimesRepo.trueTask;
+            user.Crimes.Clear();
+            foreach (var crime in crimes)
+            {
+                try
+                {
+                    crime.User = user;
+                    user.Crimes.Add(crime);
+                    await CreateCrime(crime);
+                }
+                catch (Exception)
+                {
+                    result = false;
+                }
+            }
+            return await Task.FromResult(result);
         }
 
         private async Task<bool> CreateCrime(Crime crime)
@@ -116,15 +91,6 @@ namespace CrimesRestApi.Data
                 return await ICrimesRepo.falseTask;
             }
             await _context.AddAsync(crime);
-            return await ICrimesRepo.trueTask;
-        }
-        private async Task<bool> UpdateCrime(Crime crime)
-        {
-            if (crime == null)
-            {
-                return await ICrimesRepo.falseTask;
-            }
-            _context.Update(crime);
             return await ICrimesRepo.trueTask;
         }
         private async Task<bool> DeleteCrime(Crime crime)
