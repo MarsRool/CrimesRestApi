@@ -8,11 +8,10 @@ namespace CrimesRestApi.Dtos
 {
     public class CustomMapper : ICustomMapper
     {
-        public CrimeReadDto Map(Crime crime)
+        public CrimeDto Map(Crime crime)
         {
-            return new CrimeReadDto
+            return new CrimeDto
             {
-                Id = crime.Id,
                 UUID = crime.UUID,
                 Title = crime.Title,
                 Date = new DateTimeOffset(crime.Date).ToUnixTimeMilliseconds(),
@@ -21,16 +20,15 @@ namespace CrimesRestApi.Dtos
             };
         }
 
-        public Crime Map(CrimeReadDto crimeReadDto)
+        public Crime Map(CrimeDto crimeDto)
         {
             return new Crime
             {
-                Id = crimeReadDto.Id,
-                UUID = crimeReadDto.UUID,
-                Title = crimeReadDto.Title,
-                Date = DateTimeOffset.FromUnixTimeMilliseconds(crimeReadDto.Date).DateTime.ToLocalTime(),
-                Solved = crimeReadDto.Solved,
-                RequirePolice = crimeReadDto.RequirePolice
+                UUID = crimeDto.UUID,
+                Title = crimeDto.Title,
+                Date = DateTimeOffset.FromUnixTimeMilliseconds(crimeDto.Date).DateTime.ToLocalTime(),
+                Solved = crimeDto.Solved,
+                RequirePolice = crimeDto.RequirePolice
             };
         }
     }

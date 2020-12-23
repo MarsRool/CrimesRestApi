@@ -4,10 +4,8 @@ using Newtonsoft.Json;
 
 namespace CrimesRestApi.Dtos
 {
-    public class CrimeReadDto
+    public class CrimeDto
     {
-        [JsonProperty(PropertyName = "id")]
-        public int Id { get; set; }
         [JsonProperty(PropertyName = "uuid")]
         public string UUID { get; set; }
         [JsonProperty(PropertyName = "title")]
@@ -18,7 +16,5 @@ namespace CrimesRestApi.Dtos
         public bool Solved { get; set; }
         [JsonProperty(PropertyName = "require_police")]
         public bool RequirePolice { get; set; }
-        [JsonProperty(PropertyName = "user")]
-        public User User { get; set; }
     }
 }

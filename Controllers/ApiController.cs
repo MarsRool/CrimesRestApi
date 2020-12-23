@@ -61,7 +61,7 @@ namespace CrimesRestApi.Controllers
                 User user = await _repo.GetUserCrimes(email, password);
                 if (user == null)
                     throw new Exception();
-                List<CrimeReadDto> crimeDtos = new List<CrimeReadDto>();                
+                List<CrimeDto> crimeDtos = new List<CrimeDto>();                
                 foreach (Crime crime in user.Crimes)
                     crimeDtos.Add(_mapper.Map(crime));
                 return await Task.FromResult(Ok(JsonConvert.SerializeObject(crimeDtos.ToArray(), Formatting.Indented)));
@@ -97,13 +97,11 @@ namespace CrimesRestApi.Controllers
             }
             try
             {
-                List<CrimeReadDto> crimeDtos = JsonConvert.DeserializeObject<List<CrimeReadDto>>(crimes);
+                List<CrimeDto> crimeDtos = JsonConvert.DeserializeObject<List<CrimeDto>>(crimes);
                 List<Crime> crimesList = new List<Crime>();
-                foreach(CrimeReadDto crimeReadDto in crimeDtos)
+                foreach(CrimeDto crimeDto in crimeDtos)
                 {
-                    Crime crime = _mapper.Map(crimeReadDto);
-                    crime.User = user;
-                    crimesList.Add(crime);
+                    crimesList.Add(_mapper.Map(crimeDto));
                 }
                 bool result = await _repo.SetCrimes(user, crimesList);
                 if (result)

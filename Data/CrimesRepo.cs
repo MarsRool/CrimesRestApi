@@ -61,14 +61,19 @@ namespace CrimesRestApi.Data
 
             foreach (var crime in user.Crimes)
             {
-                if (crimes.Contains(crime, Crime.comparer))
-                    crimesUpdate.Add(crime);
-                else
+                if (!crimes.Contains(crime, Crime.comparer))
                     crimesDelete.Add(crime);
             }
             foreach (var crime in crimes)
             {
-                if (!user.Crimes.Contains(crime, Crime.comparer))
+                crime.User = user;
+                Crime existingCrime = user.Crimes.First(c => c.UUID == crime.UUID);
+                if (existingCrime != null)
+                {
+                    crime.Id = existingCrime.Id;
+                    crimesUpdate.Add(crime);
+                }
+                else
                     crimesCreate.Add(crime);
             }
 
