@@ -26,6 +26,13 @@ namespace CrimesRestApi.Controllers
             _repo = repo;
         }
 
+        [HttpGet("login")]
+        public async Task<IActionResult> LoginUser(string email, string password)
+        {
+            User user = await _repo.GetUserCrimes(email, password);
+            return RedirectToAction(nameof(GetResult), new { result = user != null });
+        }
+
         [HttpGet("register")]
         public async Task<IActionResult> RegisterUser(string email, string password)
         {
