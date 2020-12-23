@@ -27,12 +27,19 @@ namespace CrimesRestApi.Data
 
         public async Task<bool> RegisterUser(User user)
         {
-            if (user == null || _context.Users.First(u => u.Email == user.Email) != null)
+            try
+            {
+                if (user == null || (await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email)) != null)
+                {
+                    return await ICrimesRepo.falseTask;
+                }
+                await _context.AddAsync(user);
+                return await ICrimesRepo.trueTask;
+            }
+            catch (Exception)
             {
                 return await ICrimesRepo.falseTask;
             }
-            await _context.AddAsync(user);
-            return await ICrimesRepo.trueTask;
         }
 
         public async Task<bool> SetCrimes(User user, List<Crime> crimes)
